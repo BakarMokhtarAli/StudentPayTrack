@@ -96,56 +96,83 @@ export const StudentTable = () => {
 
       setLoading(false);
 
+      // Save the current page content before modification
+      const originalContent = document.body.innerHTML;
+
       setTimeout(() => {
         const tableContent = tableRef.current.innerHTML;
 
-        // Create Word document structure
-        const wordDocument = `
-          <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head><meta charset='utf-8'><title>Student Payments</title></head>
-            <body>
-              <style>
-                table {
-                  width: 100%;
-                  border-collapse: collapse;
-                }
-                th, td {
-                  border: 1px solid black;
-                  padding: 5px;
-                  text-align: left;
-                }
-              </style>
-              ${tableContent}
-            </body>
-          </html>
+        // Replace the body content with the table for printing
+        document.body.innerHTML = `
+          <style>
+            @page {
+              size: landscape;
+              margin: 20mm;
+            }
+  
+            /* General table styles for printing */
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            th, td {
+              border: 1px solid black;
+              padding: 5px;
+              text-align: left;
+            }
+  
+            /* Hide unnecessary elements for print */
+            .no-print {
+              display: none;
+            }
+  
+            /* Mobile-specific print styles */
+            @media print and (max-width: 768px) {
+              body {
+                font-size: 12px;
+                margin: 0;
+                padding: 0;
+              }
+  
+              table {
+                width: 100%;
+                font-size: 10px;
+              }
+  
+              th, td {
+                padding: 2px;
+              }
+  
+              /* Additional adjustments to avoid content overflow */
+              table, th, td {
+                word-wrap: break-word;
+              }
+            }
+          </style>
+          <body>
+            ${tableContent}
+          </body>
         `;
 
-        // Create a Blob from the Word document content
-        const blob = new Blob(["\ufeff", wordDocument], {
-          type: "application/msword",
-        });
+        // Remove external stylesheets for the print version
+        const links = document.querySelectorAll("link[rel='stylesheet']");
+        links.forEach((link) => link.remove());
 
-        // Create a download link for the Word document
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "student_payments.doc"; // Word document filename
-        document.body.appendChild(link);
-        link.click();
+        window.print();
 
-        // Clean up
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        // Restore the original content after printing
+        document.body.innerHTML = originalContent;
 
-        toast.success("Students exported as Word document successfully!");
-
-        // Restore the original student data after exporting
+        // Restore the original students list
         setStudents(originalStudents);
+
+        toast.success("Students printed successfully!");
+        window.location.reload();
       }, 500);
     } catch (err) {
-      console.log("error exporting students", err);
+      console.log("error printing students", err);
       toast.error(
-        err.response?.data?.message || "Failed to export students, try again!"
+        err.response?.data?.message || "Failed to print students, try again!"
       );
       setLoading(false);
     }
