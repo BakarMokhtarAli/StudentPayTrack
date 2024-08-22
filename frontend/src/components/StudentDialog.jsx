@@ -31,10 +31,10 @@ export const StudentDialog = ({
   setUpdateStudents,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState("");
   const { selectedStudent, selectUpdateStudent, openDeleteModal } = useSelector(
     (state) => state.modal
   );
+  const [name, setName] = useState(selectUpdateStudent?.name || "");
 
   const title = selectUpdateStudent
     ? `update-${selectUpdateStudent.name}`
@@ -52,6 +52,11 @@ export const StudentDialog = ({
     setLoading(true);
     try {
       let response;
+      if (name === selectUpdateStudent?.name) {
+        toast.warning("No changes made");
+        dispatch(closeUpdateStundetModal());
+        return;
+      }
       if (selectUpdateStudent) {
         response = await axios.patch(
           `/api/students/${selectUpdateStudent._id}`,
@@ -82,9 +87,9 @@ export const StudentDialog = ({
         error.response?.data?.message ||
           "Failed to process student. Please try again."
       );
-      selectUpdateStudent
-        ? dispatch(closeUpdateStundetModal())
-        : dispatch(closeAddStudentModal());
+      // selectUpdateStudent
+      //   ? dispatch(closeUpdateStundetModal())
+      //   : dispatch(closeAddStudentModal());
     } finally {
       setLoading(false);
     }

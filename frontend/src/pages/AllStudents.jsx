@@ -46,7 +46,7 @@ export const AllStudents = () => {
 
         setStudents(response.data.students);
         setStudentCount(response.data.count);
-
+        console.log(studentCount);
         // Update pageCount and ensure currentPage is within valid range
         const newPageCount = Math.max(Math.ceil(studentCount / limit), 1);
         setPageCount(newPageCount);
@@ -62,7 +62,7 @@ export const AllStudents = () => {
       }
     };
     getAllStudents();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, studentCount]);
 
   const handlePageClick = ({ selected }) => {
     setCurrentPage(selected);
